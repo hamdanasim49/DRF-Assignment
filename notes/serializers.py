@@ -66,4 +66,12 @@ class LoginSerializer(serializers.ModelSerializer):
 class NotesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notes
-        fields = ["id", "text", "date_created", "date_updated"]
+        fields = [
+            "id",
+            "title",
+            "text",
+            "date_created",
+            "date_updated",
+            "sharedWith",
+            "archive",
+        ]

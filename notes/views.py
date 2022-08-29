@@ -8,9 +8,13 @@ from django.contrib.auth.models import User
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import generics
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, serializers
 from rest_framework import permissions, filters
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import action
+import json
+from django.core import serializers
+from django.http import HttpResponse
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -50,5 +54,43 @@ class NotesViewsets(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = self.queryset.filter(user=user)
+        queryset = self.queryset.filter(user=user).filter(archive=False)
         return queryset
+
+    def partial_update(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        if "sharedWith" in data:
+            note = self.queryset.get(pk=kwargs["pk"])
+            idList = data["sharedWith"]
+
+            for id in idList:
+                id = int(id)
+                curUser = User.objects.get(id=id)
+                if id != self.request.user.id and curUser not in note.sharedWith.all():
+                    note.sharedWith.add(curUser)
+
+            noteS = NotesSerializer(note)
+            return Response(noteS.data)
+
+        else:
+            return super().partial_update(request, *args, **kwargs)
+
+    @action(detail=True, methods=["POST"], name="Archive-note")
+    def archive(self, request, pk=None):
+        queryset1 = self.queryset.all()
+        note = queryset1.get(pk=pk)
+        if note.archive:
+            note.archive = False
+        else:
+            note.archive = True
+        note.save()
+        noteS = NotesSerializer(note)
+        return Response(noteS.data)
+
+    @action(detail=False, methods=["GET"], name="getShared")
+    def shared(self, request):
+        queryset = Notes.objects.all()
+        curr_user = request.user
+        queryset = queryset.filter(sharedWith=curr_user)
+        data = serializers.serialize("json", queryset)
+        return HttpResponse(data, content_type="application/json")
