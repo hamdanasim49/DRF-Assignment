@@ -1,9 +1,9 @@
 from notes.models import Notes
-from django_filters import rest_framework as filters
+from django_filters import FilterSet, BooleanFilter
 
 
-class NotesArchiveFilter(filters.filterset):
-    archive = filters.BooleanFilter(method="filter_is_archive")
+class NotesArchiveFilter(FilterSet):
+    archive = BooleanFilter(method="filter_is_archive")
     print("In file filter***")
 
     class Meta:
@@ -13,8 +13,9 @@ class NotesArchiveFilter(filters.filterset):
         ]
 
     def filter_is_archive(self, queryset, name, value):
+        print("Bro")
         if value:
-            print(value)
+            print("Allo", value)
             return queryset.filter(archive=True)
         else:
             return queryset.filter(archive=False)

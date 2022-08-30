@@ -15,6 +15,8 @@ from rest_framework.decorators import action
 import json
 from django.core import serializers
 from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
+from .permissions import UserPermission
 
 """from .filters import NotesArchiveFilter"""
 
@@ -46,8 +48,9 @@ class NotesViewsets(viewsets.ModelViewSet):
     queryset = Notes.objects.all()
     authentication_classes = (JWTAuthentication,)
     serializer_class = NotesSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [filters.SearchFilter]
+    permission_classes = [UserPermission]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    filterset_fields = ["archive"]
     search_fields = ["text"]
     pagination_class = StandardResultsSetPagination
     """filter_class = NotesArchiveFilter"""
