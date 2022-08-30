@@ -16,6 +16,8 @@ import json
 from django.core import serializers
 from django.http import HttpResponse
 
+"""from .filters import NotesArchiveFilter"""
+
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 100
@@ -48,13 +50,14 @@ class NotesViewsets(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ["text"]
     pagination_class = StandardResultsSetPagination
+    """filter_class = NotesArchiveFilter"""
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
         user = self.request.user
-        queryset = self.queryset.filter(user=user).filter(archive=False)
+        queryset = self.queryset.filter(user=user)
         return queryset
 
     def partial_update(self, request, *args, **kwargs):
