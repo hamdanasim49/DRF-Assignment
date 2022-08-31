@@ -29,11 +29,12 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 # Class based view to Get User Details using Token Authentication
 class UserDetailAPI(APIView):
+    queryset = User.objects.all()
     authentication_classes = (JWTAuthentication,)
     permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
@@ -56,6 +57,7 @@ class NotesViewsets(viewsets.ModelViewSet):
     """filter_class = NotesArchiveFilter"""
 
     def perform_create(self, serializer):
+        print("Allo ***", self.request.user.username)
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
