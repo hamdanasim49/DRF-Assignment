@@ -1,6 +1,3 @@
-import imp
-import json
-
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -9,6 +6,7 @@ from rest_framework.test import APITestCase
 
 from notes.serializers import NotesSerializer, UserSerializer
 from notes.models import Notes
+from notes.tests.factories.Notes import NotesFactory
 
 # Create your tests here.
 class RegistrationTestCase(APITestCase):
@@ -68,10 +66,26 @@ class UserDetailViewSetTestcase(APITestCase):
 class NotesViewsetTestCases(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="hamdan", password="qwerty123")
+        self.client.force_authenticate(user=self.user)
 
     def test_add_note(self):
         data = {"title": "First Note", "text": "A dangerous not do not open"}
 
-        self.client.force_authenticate(user=self.user)
         response = self.client.post("/notes/", data)
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+
+    def test_delete_note(self):
+        self.test_add_note()
+        response = self.client.delete("/notes/1/")
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class notesModelsTestCase(APITestCase):
+    # Todo: There is a conflict between keys
+    def setUp(self):
+        self.Note = NotesFactory()
+
+    def test_Delete_Note(self):
+        print(self.Note.id, self.Note)
+        response = self.client.delete("/notes/1/")
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
